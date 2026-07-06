@@ -1,0 +1,34 @@
+name: Run Petstore API Tests
+
+on:
+    push:
+        branches: ["main"]
+    workflow_dispatch:
+
+jobs:
+    test-api:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                node-version: '18'
+            - name: Install Newman and Reporter
+              run: |
+                npm install -g newman
+                npm install -g newman-reporter-htmlextra
+            - name: Create directory for test results
+              run: mkdir -p testResults
+            - name: Run Petstore collection
+              run: newman run petstore.collection.json -r htmlextra --reporter-htmlextra-export testResults/index.html
+              continue-on-error: true
+            - name: Deploy report to GitHub Pages
+              uses: peaceiris/actions-gh-pages@v4
+              with:
+                github_token: ${{ secrets.GITHUB_TOKEN }}
+                publish_dir: ./testResults
