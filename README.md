@@ -62,6 +62,6 @@ Every time a push is made to the main branch, the pipeline automatically:
 
 The latest automated test report can be viewed here:
 
-👉 Click to view the Newman HTML Report
+👉 **[Click to view the Newman HTML Report](https://github.com/ErnestSosnovskyi/Petstore-Testing-by-Postman-Newman/actions/runs/28762976504)**
 
 *(Note: replace the link above with your actual GitHub Pages URL once deployed).*
