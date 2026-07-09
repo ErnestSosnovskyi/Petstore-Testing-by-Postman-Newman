@@ -27,6 +27,7 @@ jobs:
             - name: Run Petstore collection
               run: npm run test:petstore
             - name: Start Mock API Server and Run Store tests
+              if: success() || failure()
               run: |
                 npm run turn-on-api &
                 npx wait-on http://localhost:3000/products
