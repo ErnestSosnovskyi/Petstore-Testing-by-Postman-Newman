@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "turn-on-api": "shx cp mockApi/db_back_up.yaml mockApi/db_stage.yaml && npx yaml-server --hotReload=off --autoStart=off --port 3000 --database ./mockApi/db_stage.yaml",
-    "test:store": "newman run store.collection.json -r htmlextra --reporter-htmlextra-export testResults/store-report.html",
-    "test:petstore": "newman run petstore.collection.json -r htmlextra --reporter-htmlextra-export testResults/petstore-report.html"
+    "test:store": "newman run store.collection.json -r cli,htmlextra --reporter-htmlextra-export testResults/store-report.html",
+"test:petstore": "newman run petstore.collection.json -r cli,htmlextra --reporter-htmlextra-export testResults/petstore-report.html"
   },
   "keywords": [
     "api",
