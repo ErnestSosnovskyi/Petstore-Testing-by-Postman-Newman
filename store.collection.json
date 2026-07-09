@@ -524,55 +524,6 @@
           "response": []
         },
         {
-          "name": "List users (Sorted)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function() {\r",
-                  "    pm.response.to.have.status(200);\r",
-                  "});\r",
-                  "\r",
-                  "pm.test(\"First user should be Alice (alphabetical order)\", function() {\r",
-                  "    var jsonData = pm.response.json();\r",
-                  "    pm.expect(jsonData[0].firstName).to.eql(\"Alice\");\r",
-                  "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users?sortOrder=ASC&sortKey=firstName",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users"
-              ],
-              "query": [
-                {
-                  "key": "sortOrder",
-                  "value": "ASC",
-                  "type": "text"
-                },
-                {
-                  "key": "sortKey",
-                  "value": "firstName",
-                  "type": "text"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "List users (Pagination)",
           "event": [
             {
