@@ -5,8 +5,8 @@ This repository contains an automated API testing framework. It demonstrates the
 ## 🚀 Project Overview
 
 The project is divided into two main parts:
-1. **Local API Testing (`store.collection.json`):** Testing a locally hosted mock REST API using the AAA (Arrange, Act, Assert) pattern.
-2. **CI/CD Pipeline (`petstore.collection.json`):** Automated test execution upon pushing to the `main` branch, with results published as an interactive HTML report to GitHub Pages.
+1. **Local & Automated API Testing:** Testing a locally hosted mock REST API (`store.collection.json`) using the AAA (Arrange, Act, Assert) pattern and API Chaining for dynamic data extraction.
+2. **CI/CD Pipeline:** Automated test execution for both `petstore` and `store` APIs upon pushing or creating a Pull Request to the `main` branch, with results published as interactive HTML reports to GitHub Pages.
 
 ## 🛠️ Features & Test Coverage
 
@@ -39,10 +39,8 @@ cd <repository-folder>
 2. Start the local mock server:
 
 ```bash
-npm run tern-on-api
+npm run turn-on-api
 ```
-
-*Note for Windows users: If you encounter an error with the `cp` command, run this script using Git Bash.*
 
 3. Open Postman, import the `store.collection.json` file, and run the collection using the Postman Runner. The server runs on http://localhost:3000.
 
@@ -50,13 +48,14 @@ npm run tern-on-api
 
 This repository is configured with a GitHub Actions workflow (`.github/workflows/newman.yml`).
 
-Every time a push is made to the main branch, the pipeline automatically:
+Every time a push or a pull request is made to the `main` branch, the pipeline automatically:
 
 1. Sets up a Node.js environment.
-2. Installs Newman (Postman CLI) and the `newman-reporter-htmlextra` package.
+2. Installs dependencies, including Newman and the `newman-reporter-htmlextra` package.
 3. Executes the `petstore.collection.json` tests.
-4. Generates a detailed, interactive HTML report.
-5. Deploys the report to the `gh-pages` branch.
+4. Starts the local mock API server in the background, waits for it to be active, and executes the `store.collection.json` tests.
+5. Generates an index page and detailed, interactive HTML reports for both test suites.
+6. Deploys the reports to the `gh-pages` branch.
 
 # 📊 View the Test Report
 

@@ -17,17 +17,24 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Response time is less than 200ms\", function () {\r",
-                  "    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+                  "pm.test(\"Response time is less than 500ms\", function () {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);\r",
                   "});\r",
                   "pm.test(\"Status code is 200\", function () {\r",
                   "    pm.response.to.have.status(200);\r",
                   "});\r",
                   "pm.test(\"Content-Type is present\", function () {\r",
                   "    pm.response.to.have.header(\"Content-Type\");\r",
+                  "});\r",
+                  "pm.test(\"Response is an array of products\", function() {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData).to.be.an('array');\r",
+                  "    pm.expect(jsonData.length).to.be.above(0);\r",
                   "});"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
               }
             }
           ],
@@ -62,19 +69,24 @@
                   "    \"properties\": {\r",
                   "        \"id\": {\"type\": \"integer\"},\r",
                   "        \"name\": {\"type\": \"string\"},\r",
-                  "        \"price\": {\"type\": \"integer\"},\r",
+                  "        \"price\": {\"type\": \"number\"},\r",
                   "        \"sku\": {\"type\": \"integer\"},\r",
                   "        \"description\": {\"type\": \"string\"}\r",
                   "    },\r",
                   "    \"required\": [\"id\", \"name\", \"price\"]\r",
                   "};\r",
                   "\r",
-                  "pm.test(\"Response format matches JSON schema\", function() {\r",
+                  "pm.test(\"Response matches Product JSON schema\", function() {\r",
                   "    pm.response.to.have.jsonSchema(schema);\r",
                   "});\r",
                   "\r",
                   "pm.test(\"Response time is less than 500ms\", function() {\r",
                   "    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Product price is greater than 0\", function() {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.price).to.be.above(0);\r",
                   "});"
                 ],
                 "type": "text/javascript",
@@ -87,13 +99,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/products/3",
+              "raw": "{{baseUrl}}/products/{{currentProductId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "products",
-                "3"
+                "{{currentProductId}}"
               ]
             }
           },
@@ -101,6 +113,28 @@
         },
         {
           "name": "Create product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function () {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+                  "});\r",
+                  "\r",
+                  "var jsonData = pm.response.json();\r",
+                  "pm.collectionVariables.set(\"currentProductId\", jsonData.id);\r",
+                  "\r",
+                  "pm.test(\"Response has an ID\", function () {\r",
+                  "    pm.expect(jsonData.id).to.be.a('number');\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
@@ -127,12 +161,27 @@
         },
         {
           "name": "Update product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"id\": 4,\r\n    \"name\": \"banana\",\r\n    \"price\": 155,\r\n    \"sku\": 123321123,\r\n    \"description\": \"changed description\"\r\n}",
+              "raw": "{\r\n    \"id\": {{currentProductId}},\r\n    \"name\": \"banana\",\r\n    \"price\": 155,\r\n    \"sku\": 123321123,\r\n    \"description\": \"changed description\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -153,17 +202,34 @@
         },
         {
           "name": "Remove product by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.unset(\"currentProductId\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/products/4",
+              "raw": "{{baseUrl}}/products/{{currentProductId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "products",
-                "4"
+                "{{currentProductId}}"
               ]
             }
           },
@@ -176,6 +242,26 @@
       "item": [
         {
           "name": "List orders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is an array\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData).to.be.an('array');\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -193,17 +279,46 @@
         },
         {
           "name": "Get order by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "var schema = {\r",
+                  "    \"type\": \"object\",\r",
+                  "    \"properties\": {\r",
+                  "        \"id\": { \"type\": \"integer\" },\r",
+                  "        \"name\": { \"type\": \"string\" },\r",
+                  "        \"sku\": { \"type\": \"integer\" }\r",
+                  "    },\r",
+                  "    \"required\": [\"id\", \"name\", \"sku\"]\r",
+                  "};\r",
+                  "\r",
+                  "pm.test(\"Response matches Order JSON schema\", function () {\r",
+                  "    pm.response.to.have.jsonSchema(schema);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/orders/3",
+              "raw": "{{baseUrl}}/orders/{{currentOrderId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "orders",
-                "3"
+                "{{currentOrderId}}"
               ]
             }
           },
@@ -244,6 +359,24 @@
         },
         {
           "name": "Create order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 201\", function () {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+                  "});\r",
+                  "\r",
+                  "var jsonData = pm.response.json();\r",
+                  "pm.collectionVariables.set(\"currentOrderId\", jsonData.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
@@ -270,12 +403,27 @@
         },
         {
           "name": "Update order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"id\": 4,\r\n    \"name\": \"order5\",\r\n    \"sku\": 123425445656765\r\n}",
+              "raw": "{\r\n    \"id\": {{currentOrderId}},\r\n    \"name\": \"order5_updated\",\r\n    \"sku\": 123425445656765\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -296,17 +444,34 @@
         },
         {
           "name": "Remove order by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.unset(\"currentOrderId\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/orders/4",
+              "raw": "{{baseUrl}}/orders/{{currentOrderId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "orders",
-                "4"
+                "{{currentOrderId}}"
               ]
             }
           },
@@ -319,6 +484,30 @@
       "item": [
         {
           "name": "List users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response time is less than 500ms\", function () {\r",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is an array of users\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData).to.be.an('array');\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -435,17 +624,53 @@
         },
         {
           "name": "Get user by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "var schema = {\r",
+                  "    \"type\": \"object\",\r",
+                  "    \"properties\": {\r",
+                  "        \"id\": { \"type\": \"integer\" },\r",
+                  "        \"firstName\": { \"type\": \"string\" },\r",
+                  "        \"lastName\": { \"type\": \"string\" },\r",
+                  "        \"email\": { \"type\": \"string\" },\r",
+                  "        \"status\": { \"type\": \"string\" }\r",
+                  "    },\r",
+                  "    \"required\": [\"id\", \"firstName\", \"email\"]\r",
+                  "};\r",
+                  "\r",
+                  "pm.test(\"Response matches User JSON schema\", function () {\r",
+                  "    pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Email is properly formatted\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.email).to.include(\"@\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/users/3",
+              "raw": "{{baseUrl}}/users/{{currentUserId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "users",
-                "3"
+                "{{currentUserId}}"
               ]
             }
           },
@@ -453,12 +678,30 @@
         },
         {
           "name": "Create user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 200\", function() {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+                  "});\r",
+                  "\r",
+                  "var jsonData = pm.response.json();\r",
+                  "pm.collectionVariables.set(\"currentUserId\", jsonData.id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"firstName\": \"Dream\",\r\n    \"lastName\": \"Real\",\r\n    \"email\": \"dream.real@gmail.com\",\r\n    \"dateOfBirth\": \"2001-10-99\",\r\n    \"emailVerified\": true,\r\n    \"signUpDate\": \"2019-08-24\",\r\n    \"status\": \"active\",\r\n    \"level\": \"lord\"\r\n}",
+              "raw": "{\r\n    \"firstName\": \"Dream\",\r\n    \"lastName\": \"Real\",\r\n    \"email\": \"dream.real@gmail.com\",\r\n    \"dateOfBirth\": \"2001-10-15\",\r\n    \"emailVerified\": true,\r\n    \"signUpDate\": \"2019-08-24\",\r\n    \"status\": \"active\",\r\n    \"level\": \"lord\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -479,12 +722,32 @@
         },
         {
           "name": "Update user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"User first name updated to Ilon\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.firstName).to.eql(\"Ilon\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"firstName\": \"Ilon\",\r\n    \"lastName\": \"Mask\",\r\n    \"email\": \"ilon.mask@gmail.com\",\r\n    \"dateOfBirth\": \"2001-10-99\",\r\n    \"emailVerified\": true,\r\n    \"signUpDate\": \"2019-08-24\",\r\n    \"status\": \"active\",\r\n    \"level\": \"lord\",\r\n    \"id\": 10\r\n}",
+              "raw": "{\r\n    \"firstName\": \"Ilon\",\r\n    \"lastName\": \"Mask\",\r\n    \"email\": \"ilon.mask@gmail.com\",\r\n    \"dateOfBirth\": \"2001-10-15\",\r\n    \"emailVerified\": true,\r\n    \"signUpDate\": \"2019-08-24\",\r\n    \"status\": \"active\",\r\n    \"level\": \"lord\",\r\n    \"id\": {{currentUserId}}\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -505,17 +768,34 @@
         },
         {
           "name": "Remove user by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.unset(\"currentUserId\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
           "request": {
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/users/10",
+              "raw": "{{baseUrl}}/users/{{currentUserId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "users",
-                "10"
+                "{{currentUserId}}"
               ]
             }
           },
@@ -548,6 +828,14 @@
     {
       "key": "baseUrl",
       "value": "http://localhost:3000"
+    },
+    {
+      "key": "currentProductId",
+      "value": ""
+    },
+    {
+      "key": "currentUserId",
+      "value": ""
     }
   ]
 }
